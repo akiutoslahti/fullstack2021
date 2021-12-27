@@ -1,4 +1,4 @@
-import patientData from "../data/patients.json";
+import patientData from "../data/patients";
 import { v1 as uuid } from "uuid";
 import { Patient, PublicPatient, NewPatient } from "../types";
 import toNewPatient from "../utils";
@@ -34,7 +34,7 @@ const addPatient = (entry: NewPatient): PublicPatient => {
         id,
         ...entry,
     };
-    patientData.push(newEntry);
+    patients.push(newEntry);
     return {
         id: newEntry.id,
         name: newEntry.name,
