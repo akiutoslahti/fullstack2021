@@ -4,11 +4,11 @@ import { useParams } from "react-router-dom";
 import { Container, Header, Icon } from "semantic-ui-react";
 import { apiBaseUrl } from "../constants";
 import { addPatient, useStateValue } from "../state";
-import { Patient } from "../types";
+import { Entry, Patient } from "../types";
 
 const PatientPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
-    const [{ patients }, dispatch] = useStateValue();
+    const [{ patients, diagnoses }, dispatch] = useStateValue();
     const [, setError] = React.useState<string | undefined>();
 
     const fetchPatient = async (id: string) => {
@@ -24,7 +24,7 @@ const PatientPage: React.FC = () => {
     };
 
     const patient = Object.values(patients).find((p) => p.id === id);
-    if (!patient || !patient.ssn) {
+    if (!patient || !patient.ssn || !patient.entries) {
         void fetchPatient(id);
     }
 
@@ -38,6 +38,31 @@ const PatientPage: React.FC = () => {
         }
     };
 
+    const Entry = ({ entry }: { entry: Entry }) => {
+        const diagnosisList = entry.diagnosisCodes?.map((diagnosis, idx) => (
+            <li key={idx}>{diagnosis} {diagnoses[diagnosis]?.name}</li>
+        ));
+        return (
+            <div>
+                {entry.date} <i>{entry.description}</i>
+                <ul>{diagnosisList}</ul>
+            </div>
+        );
+    };
+
+    const Entries = ({ entries }: { entries: Array<Entry> | undefined }) => {
+        if (!entries) {
+            return <div></div>;
+        }
+        return (
+            <div>
+                {entries.map((entry) => (
+                    <Entry key={entry.id} entry={entry} />
+                ))}
+            </div>
+        );
+    };
+
     return (
         <Container>
             <Header as="h3">
@@ -46,6 +71,8 @@ const PatientPage: React.FC = () => {
             </Header>
             <div>ssn: {patient?.ssn}</div>
             <div>occupation: {patient?.occupation}</div>
+            <Header as="h4">entries</Header>
+            <Entries entries={patient?.entries} />
         </Container>
     );
 };
