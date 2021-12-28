@@ -1,10 +1,17 @@
 import axios from "axios";
 import React from "react";
 import { useParams } from "react-router-dom";
-import { Container, Header, Icon } from "semantic-ui-react";
+import { Container, Header, Icon, List, Segment } from "semantic-ui-react";
 import { apiBaseUrl } from "../constants";
 import { addPatient, useStateValue } from "../state";
-import { Entry, Patient } from "../types";
+import {
+    Entry,
+    HealthCheckEntry,
+    HealthCheckRating,
+    HospitalEntry,
+    OccupationalHealthCareEntry,
+    Patient,
+} from "../types";
 
 const PatientPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -28,26 +35,103 @@ const PatientPage: React.FC = () => {
         void fetchPatient(id);
     }
 
-    const getGenderIcon = (patient: Patient | undefined) => {
-        if (!patient || patient.gender === "other") {
-            return "genderless";
-        } else if (patient.gender === "male") {
-            return "mars";
-        } else {
-            return "venus";
+    const HealthCheckSymbol = ({ rating }: { rating: HealthCheckRating }) => {
+        switch (rating) {
+            case 0:
+                return <Icon name="heart" color="green"></Icon>;
+            case 1:
+                return <Icon name="heart" color="yellow"></Icon>;
+            case 2:
+                return <Icon name="heart" color="orange"></Icon>;
+            case 3:
+                return <Icon name="heart" color="red"></Icon>;
+            default:
+                return <Icon name="heart" color="black"></Icon>;
         }
     };
 
-    const Entry = ({ entry }: { entry: Entry }) => {
-        const diagnosisList = entry.diagnosisCodes?.map((diagnosis, idx) => (
-            <li key={idx}>{diagnosis} {diagnoses[diagnosis]?.name}</li>
+    const DiagnosisList = ({ codes }: { codes: Array<string> | undefined }) => {
+        if (!codes) return <div></div>;
+
+        const diagnosisList = codes.map((diagnosis, idx) => (
+            <List.Item key={idx}>
+                {diagnosis} {diagnoses[diagnosis]?.name}
+            </List.Item>
         ));
+        return <List>{diagnosisList}</List>;
+    };
+
+    const HealthCheckEntryDetails = ({
+        entry,
+    }: {
+        entry: HealthCheckEntry;
+    }) => {
         return (
-            <div>
-                {entry.date} <i>{entry.description}</i>
-                <ul>{diagnosisList}</ul>
-            </div>
+            <Segment>
+                <div>
+                    <b>{entry.date}</b>{" "}
+                    <Icon size="big" name="user doctor"></Icon>
+                </div>
+                <div>
+                    <i>{entry.description}</i>
+                </div>
+                <HealthCheckSymbol rating={entry.healthCheckRating} />
+                <DiagnosisList codes={entry.diagnosisCodes} />
+            </Segment>
         );
+    };
+
+    const HospitalEntryDetails = ({ entry }: { entry: HospitalEntry }) => {
+        return (
+            <Segment>
+                <div>
+                    <b>{entry.date}</b> <Icon size="big" name="hospital"></Icon>
+                </div>
+                <div>
+                    <i>{entry.description}</i>
+                </div>
+                <DiagnosisList codes={entry.diagnosisCodes} />
+            </Segment>
+        );
+    };
+
+    const OccupationalHealthCareEntryDetails = ({
+        entry,
+    }: {
+        entry: OccupationalHealthCareEntry;
+    }) => {
+        return (
+            <Segment>
+                <div>
+                    <b>{entry.date}</b>{" "}
+                    <Icon size="big" name="stethoscope">
+                        {entry.employerName}
+                    </Icon>
+                </div>
+                <div>
+                    <i>{entry.description}</i>
+                </div>
+                <DiagnosisList codes={entry.diagnosisCodes} />
+            </Segment>
+        );
+    };
+
+    const EntryDetails: React.FC<{ entry: Entry }> = ({ entry }) => {
+        const assertNever = (value: never): never => {
+            throw new Error(
+                `Unhandled discriminated union member: ${JSON.stringify(value)}`
+            );
+        };
+        switch (entry.type) {
+            case "HealthCheck":
+                return <HealthCheckEntryDetails entry={entry} />;
+            case "Hospital":
+                return <HospitalEntryDetails entry={entry} />;
+            case "OccupationalHealthcare":
+                return <OccupationalHealthCareEntryDetails entry={entry} />;
+            default:
+                return assertNever(entry);
+        }
     };
 
     const Entries = ({ entries }: { entries: Array<Entry> | undefined }) => {
@@ -57,10 +141,20 @@ const PatientPage: React.FC = () => {
         return (
             <div>
                 {entries.map((entry) => (
-                    <Entry key={entry.id} entry={entry} />
+                    <EntryDetails key={entry.id} entry={entry} />
                 ))}
             </div>
         );
+    };
+
+    const getGenderIcon = (patient: Patient | undefined) => {
+        if (!patient || patient.gender === "other") {
+            return "genderless";
+        } else if (patient.gender === "male") {
+            return "mars";
+        } else {
+            return "venus";
+        }
     };
 
     return (
