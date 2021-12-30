@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+    patientor-backend:
+        image: patientor-backend
+        build:
+            context: ./backend
+            dockerfile: Dockerfile
+        container_name: patientor-backend
+
+    patientor-frontend:
+        image: patientor-frontend
+        build:
+            context: ./frontend
+            dockerfile: Dockerfile
+        container_name: patientor-frontend
+        depends_on:
+            - patientor-backend
+
+    reverse-proxy:
+        image: nginx:stable-alpine
+        volumes:
+            - ./nginx.conf:/etc/nginx/nginx.conf:ro
+        ports:
+            - 3000:80
+        container_name: reverse-proxy
+        depends_on:
+            - patientor-frontend
