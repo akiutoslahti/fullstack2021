@@ -3,8 +3,6 @@ version: '3.8'
 services:
     mongo:
         image: mongo
-        ports:
-            - 3456:27017
         environment:
             MONGO_INITDB_ROOT_USERNAME: root
             MONGO_INITDB_ROOT_PASSWORD: passwd
@@ -15,8 +13,20 @@ services:
 
     redis:
         image: redis
-        ports:
-            - 3457:6379
         command: ['redis-server', '--appendonly', 'yes']
         volumes:
           - ./redis_data:/data
+
+    backend:
+        image: todo-back-dev
+        build:
+            context: .
+            dockerfile: dev.Dockerfile
+        volumes:
+            - ./:/usr/src/app
+        ports:
+            - 3000:3000
+        container_name: todo-back-dev
+        environment:
+          - REDIS_URL=//redis:6379
+          - MONGO_URL=mongodb://the_username:the_password@mongo:27017/the_database
