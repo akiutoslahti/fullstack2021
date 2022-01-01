@@ -53,7 +53,7 @@ router.get("/:id", async (req, res) => {
     if (user) {
         return res.json(user);
     } else {
-        res.status(404).json({ error: "could not find user" });
+        return res.status(404).json({ error: "could not find user" });
     }
 });
 
@@ -98,7 +98,7 @@ router.put("/:username", async (req, res, next) => {
             next(err);
         }
     } else {
-        res.status(404).json({ error: "could not find user" });
+        return (404).json({ error: "could not find user" });
     }
 });
 
