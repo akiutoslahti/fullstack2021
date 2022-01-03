@@ -20,10 +20,10 @@ router.put("/:id", tokenExtractor, async (req, res, next) => {
                 reading.save();
                 return res.json(reading);
             } else {
-                res.status(401).json({ error: "insufficient permissions" });
+                return res.status(401).json({ error: "insufficient permissions" });
             }
         } else {
-            res.status(404).json({ error: "could not find reading" });
+            return res.status(404).json({ error: "could not find reading" });
         }
     } catch (err) {
         next(err);

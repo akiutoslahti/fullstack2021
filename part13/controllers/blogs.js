@@ -54,7 +54,7 @@ const blogFinder = async (req, res, next) => {
     if (blog) {
         req.blog = blog;
     } else {
-        res.status(404).json({ error: "could not find blog" });
+        return res.status(404).json({ error: "could not find blog" });
     }
 
     next();
@@ -81,7 +81,7 @@ router.delete("/:id", blogFinder, tokenExtractor, async (req, res) => {
     if (blog.userId === req.decodedToken.id) {
         await blog.destroy();
     } else {
-        res.status(401).json({ error: "insufficient permissions" });
+        return res.status(401).json({ error: "insufficient permissions" });
     }
     res.status(204).end();
 });
